@@ -1,0 +1,40 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: '11'
+
+    - name: Build with Gradle
+      run: ./gradlew build
+
+    - name: Create ZIP package
+      run: zip -r myapp.zip .
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: myapp
+        path: myapp.zip
+
+    - name: Push to Octopus
+      env:
+        OCTOPUS_URL: ${{ http://localhost/app#/Spaces-1/dashboard }}
+        OCTOPUS_API_KEY: ${{ API-OHWGTSXSA919IEA9EI1MZYD2OTMUS3 }}
+      run: |
+        curl -X POST "$OCTOPUS_URL/api/packages/raw?packageId=myapp&version=1.0.$GITHUB_RUN_NUMBER" \
+        -H "X-Octopus-ApiKey: $OCTOPUS_API_KEY" \
+        --data-binary "@myapp.zip"
