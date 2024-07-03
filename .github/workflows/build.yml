@@ -16,7 +16,7 @@ jobs:
       - name: Install Octopus CLI
         run: |
           curl -L https://github.com/OctopusDeploy/cli/releases/download/v2.4.0/octopus_2.4.0_linux_amd64.tar.gz | tar xz
-          sudo mv octo /usr/local/bin
+
 
       - name: Download Artifact
         uses: actions/download-artifact@v2
