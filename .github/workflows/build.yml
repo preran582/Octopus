@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Deploy to Octopus
 
 on:
   push:
@@ -6,35 +6,26 @@ on:
       - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up JDK 11
-      uses: actions/setup-java@v1
-      with:
-        java-version: '11'
+      - name: Install Octopus CLI
+        run: |
+          curl -L https://github.com/OctopusDeploy/cli/releases/download/v0.9.1/OctopusCLI.0.9.1.linux-x64.tar.gz | tar xz
+          sudo mv octo /usr/local/bin
 
-    - name: Build with Gradle
-      run: ./gradlew build
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: application-package
 
-    - name: Create ZIP package
-      run: zip -r myapp.zip .
+      - name: Push Package to Octopus
+        run: octo push --server ${{ secrets.OCTOPUS_SERVER }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --package application-package.jar --space "Default"
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: myapp
-        path: myapp.zip
-
-    - name: Push to Octopus
-      env:
-        OCTOPUS_URL: ${{ http://localhost/app#/Spaces-1/dashboard }}
-        OCTOPUS_API_KEY: ${{ API-OHWGTSXSA919IEA9EI1MZYD2OTMUS3 }}
-      run: |
-        curl -X POST "$OCTOPUS_URL/api/packages/raw?packageId=myapp&version=1.0.$GITHUB_RUN_NUMBER" \
-        -H "X-Octopus-ApiKey: $OCTOPUS_API_KEY" \
-        --data-binary "@myapp.zip"
+      - name: Create Release in Octopus
+        run: |
+          octo create-release --server ${{ secrets.OCTOPUS_SERVER }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project "YourProjectName" --deployTo "Development" --version ${{ github.run_number }} --packageversion ${{ github.run_number }}
