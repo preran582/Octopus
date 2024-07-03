@@ -28,4 +28,4 @@ jobs:
 
       - name: Create Release in Octopus
         run: |
-          octo create-release --server ${{ secrets.OCTOPUS_SERVER }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project "YourProjectName" --deployTo "Development" --version ${{ github.run_number }} --packageversion ${{ github.run_number }}
+          octo create-release --server ${{ secrets.OCTOPUS_SERVER }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project "Demo" --deployTo "Development" --version 1.0.0 --packageversion 1.0.0
